@@ -13,10 +13,10 @@
         android:theme="@style/Theme.PervasiveProj"
         tools:targetApi="31">
         <activity
-            android:name=".Registeration"
+            android:name=".profile"
             android:exported="false" />
         <activity
-            android:name=".Registration"
+            android:name=".Registeration"
             android:exported="false" />
         <activity
             android:name=".Login"
