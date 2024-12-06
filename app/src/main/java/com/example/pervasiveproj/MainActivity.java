@@ -1,5 +1,6 @@
 package com.example.pervasiveproj;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -10,14 +11,19 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity {
 
     private ListView actionsListView;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
 
         actionsListView = findViewById(R.id.actionsListView);
 
@@ -64,7 +70,29 @@ public class MainActivity extends AppCompatActivity {
                     default:
                         break;
                 }
+
+
+
+
             }
         });
+
+//        actionsListView = findViewById(R.id.actionsListView);
+//        ArrayList<Item> actionsList = new ArrayList<>();
+//
+//        Item temperature = new Item("Temperature" , "See the home temperature right now !!",R.drawable.temperature);
+//        Item light = new Item("Lights" , "Turn on/off lights." , R.drawable.lamp);
+//        Item fan = new Item("Fan" , "Turn on/off the fan." , R.drawable.fan);
+//        Item door = new Item("Garage Door" , "Open/Close garage door." , R.drawable.garage);
+//
+//        actionsList.add(temperature);
+//        actionsList.add(light);
+//        actionsList.add(fan);
+//        actionsList.add(door);
+//
+//        ActionsListAdapter actionsListAdapter = new ActionsListAdapter(this, actionsList);
+//
+//        actionsListView.setAdapter(actionsListAdapter);
+
     }
 }

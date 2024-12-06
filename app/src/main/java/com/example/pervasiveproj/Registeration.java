@@ -57,10 +57,8 @@ public class Registeration extends AppCompatActivity {
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
-        // Select Birthdate Button
         btnSelectBirthdate.setOnClickListener(v -> showDatePicker());
 
-        // Register Button
         btnRegister.setOnClickListener(v -> registerUser());
     }
 
@@ -105,12 +103,13 @@ public class Registeration extends AppCompatActivity {
             return;
         }
 
-        if (profileImageUri == null) {
-            Toast.makeText(this, "Please upload a profile picture!", Toast.LENGTH_SHORT).show();
-            return;
+        if (profileImageUri != null) {
+            // If a profile picture is selected, upload it and save user data
+            uploadProfilePictureAndSaveUser(name, username, email, password);
+        } else {
+            // If no profile picture is selected, save user data without an image URL
+            saveUserToFirestore(name, username, email, password, null);
         }
-
-        uploadProfilePictureAndSaveUser(name, username, email, password);
     }
 
     private void uploadProfilePictureAndSaveUser(String name, String username, String email, String password) {
@@ -130,14 +129,17 @@ public class Registeration extends AppCompatActivity {
                 });
     }
 
-    private void saveUserToFirestore(String name, String username, String email, String password, String profilePictureUrl) {
+    private void saveUserToFirestore(String name, String username, String email, String password, @Nullable String profilePictureUrl) {
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
         user.put("username", username);
         user.put("email", email);
         user.put("password", password);
-        user.put("profilePicture", profilePictureUrl);
         user.put("birthdate", birthdate);
+
+        if (profilePictureUrl != null) {
+            user.put("profilePicture", profilePictureUrl);
+        }
 
         firestore.collection("users").document(username)
                 .set(user)
@@ -145,7 +147,8 @@ public class Registeration extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "User registered successfully!", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Failed to register user!", Toast.LENGTH_SHORT).show();
+                        String errorMessage = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                        Toast.makeText(this, "Failed to register user: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
     }

@@ -48,6 +48,31 @@ public class Login extends AppCompatActivity {
         // Forgot Password Button
         btnForgotPassword.setOnClickListener(v -> resetPassword());
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadSavedCredentials();
+    }
+
+    private void loadSavedCredentials() {
+        // Access SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
+        boolean rememberMe = sharedPreferences.getBoolean("rememberMe", false); // Check if Remember Me was selected
+
+        if (rememberMe) {
+            // Retrieve saved email and password
+            String savedEmail = sharedPreferences.getString("email", "");
+            String savedPassword = sharedPreferences.getString("password", "");
+
+            // Auto-fill the fields
+            etEmail.setText(savedEmail);
+            etPassword.setText(savedPassword);
+
+            // Check the "Remember Me" checkbox
+            cbRememberMe.setChecked(true);
+        }
+    }
+
 
     private void loginUser() {
         String email = etEmail.getText().toString().trim();
@@ -75,7 +100,10 @@ public class Login extends AppCompatActivity {
                             }
                             // Handle the login success (e.g., navigate to the main screen)
                             Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                            navigateToMain();
+                            // new update
+                            Intent main = new Intent(this , HomePage.class) ;
+                            startActivity(main) ;
+                            // navigateToMain();
                         }
                     } else {
                         Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
@@ -108,9 +136,9 @@ public class Login extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void navigateToMain() {
-        Intent intent = new Intent(this, MainActivity.class); // Replace with your main activity
-        startActivity(intent);
-        finish(); // Close the login activity
-    }
+//    private void navigateToMain() {
+//        Intent intent = new Intent(this, MainActivity.class); // Replace with your main activity
+//        startActivity(intent);
+//        finish(); // Close the login activity
+//    }
 }
