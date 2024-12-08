@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:gravity="center">
+
+    <!-- عنوان الصفحة -->
+    <TextView
+        android:id="@+id/lights_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lights Control"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp"
+        android:textColor="#000"/>
+
+    <!-- زرار تشغيل الإضاءة -->
+    <Button
+        android:id="@+id/btn_turn_on"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turn On"
+        android:layout_marginBottom="10dp"
+        android:backgroundTint="#4CAF50"
+        android:textColor="#FFF" />
+
+    <!-- زرار إطفاء الإضاءة -->
+    <Button
+        android:id="@+id/btn_turn_off"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Turn Off"
+        android:backgroundTint="#F44336"
+        android:textColor="#FFF" />
+
+</LinearLayout>

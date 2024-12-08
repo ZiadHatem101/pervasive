@@ -13,11 +13,14 @@
         android:theme="@style/Theme.PervasiveProj"
         tools:targetApi="31">
         <activity
-            android:name=".HomePage"
-            android:theme="@style/Theme.AppCompat.Light.DarkActionBar"
+            android:name=".LogActivityItem"
             android:exported="false" />
         <activity
-            android:name=".profile"
+            android:name=".HomePage"
+            android:exported="false"
+            android:theme="@style/Theme.AppCompat.Light.DarkActionBar" />
+        <activity
+            android:name=".Profile"
             android:exported="false" />
         <activity
             android:name=".Registeration"
@@ -25,7 +28,24 @@
         <activity
             android:name=".Login"
             android:exported="false" />
-
+        <activity
+            android:name=".TemperatureActivity"
+            android:exported="false" />
+        <activity
+            android:name=".GarageDoorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".LightsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".FanActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ActivityLogActivity"
+            android:exported="false" />
+        <activity
+            android:name=".SQLite"
+            android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -35,7 +55,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>

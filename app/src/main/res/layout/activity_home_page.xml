@@ -4,13 +4,20 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="149dp"
-        android:layout_height="46dp"
-        android:text="Search"
-        android:textSize="20sp" />
+<!--    <TextView-->
+<!--        android:id="@+id/textView"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="46dp"-->
+<!--        android:text="Search"-->
+<!--        android:textSize="20sp" />-->
 
+    <SearchView
+        android:id="@+id/searchView"
+        android:layout_width="391dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:queryHint="Search Here ..." />
+    
     <ListView
         android:id="@+id/actionsListView"
         android:layout_width="match_parent"

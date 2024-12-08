@@ -11,7 +11,7 @@
         android:layout_height="120dp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
-         />
+        />
 
     <!-- Username Text -->
     <TextView
@@ -21,7 +21,7 @@
         android:layout_below="@id/profile_image"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="Username"
+        android:text="@string/username"
         android:textSize="18sp"
         android:textColor="#000000" />
 
@@ -35,3 +35,4 @@
         android:layout_marginTop="32dp"
         android:text="Logout" />
 </RelativeLayout>
+

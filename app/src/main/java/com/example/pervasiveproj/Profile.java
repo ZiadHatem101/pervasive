@@ -15,7 +15,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
-public class profile extends AppCompatActivity {
+public class Profile extends AppCompatActivity {
 
     private ImageView profileImage;
     private TextView usernameText;
@@ -29,43 +29,29 @@ public class profile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // Initialize Firebase
-        firebaseAuth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
-
         // Initialize Views
         profileImage = findViewById(R.id.profile_image);
         usernameText = findViewById(R.id.username_text);
         logoutButton = findViewById(R.id.logout_button);
+
+
+
+
+        // Initialize Firebase
+        firebaseAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
+
+
 
         // Get the current user from Firebase Authentication
         FirebaseUser user = firebaseAuth.getCurrentUser();
 
         if (user != null) {
             // Fetch user profile information from Firestore
-            String userId = user.getUid();
-            firestore.collection("users").document(userId)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                String username = document.getString("username");
-                                String profilePictureUrl = document.getString("profilePictureUrl");
-
-                                // Set the username and profile picture
-                                usernameText.setText(username);
-                                if (profilePictureUrl != null && !profilePictureUrl.isEmpty()) {
-                                    Picasso.get().load(profilePictureUrl).into(profileImage); // Load profile picture
-                                }
-                            }
-                        } else {
-                            Toast.makeText(profile.this, "Error fetching user data", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+            String email = user.getEmail();
+            usernameText.setText(email);
         }
 
-        // Logout button functionality
         logoutButton.setOnClickListener(v -> logoutUser());
     }
 

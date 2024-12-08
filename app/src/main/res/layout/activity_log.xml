@@ -5,6 +5,7 @@
     android:orientation="vertical">
 
     <!-- ListView to display the activity logs -->
+
     <ListView
         android:id="@+id/logListView"
         android:layout_width="match_parent"

@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "550374431010",
-    "project_id": "pervasive-23373",
-    "storage_bucket": "pervasive-23373.firebasestorage.app"
+    "project_number": "1045837101763",
+    "project_id": "pervasive-project-93e78",
+    "storage_bucket": "pervasive-project-93e78.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:550374431010:android:29a44217df10f3bc0eed7b",
+        "mobilesdk_app_id": "1:1045837101763:android:c6be98b91e9cd5ad454076",
         "android_client_info": {
           "package_name": "com.example.pervasiveproj"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAEPGKu2I7kTm9SIN47sOaOB1XAYP_0Czw"
+          "current_key": "AIzaSyA2h4_sM4A2h_aq8TT0u3cm4W3PiScPTPk"
         }
       ],
       "services": {

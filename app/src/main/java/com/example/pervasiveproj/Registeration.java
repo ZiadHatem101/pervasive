@@ -12,6 +12,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -151,5 +152,8 @@ public class Registeration extends AppCompatActivity {
                         Toast.makeText(this, "Failed to register user: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
+
+        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseAuth.createUserWithEmailAndPassword(etEmail.getText().toString(),etPassword.getText().toString());
     }
 }

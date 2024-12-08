@@ -13,10 +13,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 
 public class Login extends AppCompatActivity {
 
-    private EditText etEmail, etPassword;
+    private EditText etEmail ;
+    private EditText etPassword;
     private CheckBox cbRememberMe;
     private Button btnLogin, btnRegister, btnForgotPassword;
     private FirebaseAuth firebaseAuth;
@@ -83,7 +86,7 @@ public class Login extends AppCompatActivity {
             return;
         }
 
-        // Firebase Authentication
+
         firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
@@ -109,6 +112,40 @@ public class Login extends AppCompatActivity {
                         Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
                     }
                 });
+
+//        FirebaseFirestore db = FirebaseFirestore.getInstance();
+//
+//        db.collection("users")
+//                .whereEqualTo("email", email)
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        boolean userFound = false;
+//
+//                        for (QueryDocumentSnapshot document : task.getResult()) {
+//                            String storedPassword = document.getString("password");
+//                            if (storedPassword != null && storedPassword.equals(password)) {
+//                                userFound = true;
+//                                Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
+//
+//                                Intent intent = new Intent(this, HomePage.class);
+//                                startActivity(intent);
+//
+//                                break;
+//                            }
+//                        }
+//
+//                        if (!userFound) {
+//                            Toast.makeText(this, "Invalid email or password.", Toast.LENGTH_SHORT).show();
+//                        }
+//                    } else {
+//                        Toast.makeText(this, "Error connecting to database: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                })
+//                .addOnFailureListener(e -> {
+//                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                });
+
     }
 
 

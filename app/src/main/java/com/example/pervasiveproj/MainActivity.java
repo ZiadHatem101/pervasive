@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
         // List of actions
         String[] actions = {
-                "View Profile",
+//                "View Profile",
                 "Signin",
                 "Signup",
         };
@@ -41,13 +41,13 @@ public class MainActivity extends AppCompatActivity {
                 String selectedAction = actions[position];
 
                 switch (selectedAction) {
-                    case "View Profile":
-                        // Navigate to Profile Activity
-                        Toast.makeText(MainActivity.this, "Navigating to Profile", Toast.LENGTH_SHORT).show();
-                        // Start profile activity here
-                        Intent intent = new Intent(MainActivity.this, profile.class);
-                        startActivity(intent);
-                        break;
+//                    case "View Profile":
+//                        // Navigate to Profile Activity
+//                        Toast.makeText(MainActivity.this, "Navigating to Profile", Toast.LENGTH_SHORT).show();
+//                        // Start profile activity here
+//                        Intent intent = new Intent(MainActivity.this, profile.class);
+//                        startActivity(intent);
+//                        break;
                     case "Signin":
                         // Navigate to Settings Activity
                         Toast.makeText(MainActivity.this, "Opening Settings", Toast.LENGTH_SHORT).show();
