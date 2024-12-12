@@ -1,7 +1,11 @@
 package com.example.pervasiveproj;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.service.autofill.UserData;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -14,16 +18,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.auth.User;
 
 
 public class Login extends AppCompatActivity {
 
-    private EditText etEmail ;
+    EditText etEmail ;
     private EditText etPassword;
     private CheckBox cbRememberMe;
     private Button btnLogin, btnRegister, btnForgotPassword;
     private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firestore;
+    public static String mail ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,32 +92,43 @@ public class Login extends AppCompatActivity {
             return;
         }
 
+        UsersDatabase database = UsersDatabase.getInstance(this) ;
 
-        firebaseAuth.signInWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = firebaseAuth.getCurrentUser();
-                        if (user != null) {
-                            // Save credentials if "Remember Me" is checked
-                            if (cbRememberMe.isChecked()) {
-                                SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.putString("email", email);
-                                editor.putString("password", password); // Or use Firebase token
-                                editor.putBoolean("rememberMe", true); // Save the Remember Me state
-                                editor.apply();
+        if(isNetworkConnected()) {
+            firebaseAuth.signInWithEmailAndPassword(email, password)
+                    .addOnCompleteListener(this, task -> {
+                        if (task.isSuccessful()) {
+                            FirebaseUser user = firebaseAuth.getCurrentUser();
+                            if (user != null) {
+                                // Save credentials if "Remember Me" is checked
+                                if (cbRememberMe.isChecked()) {
+                                    SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString("email", email);
+                                    editor.putString("password", password); // Or use Firebase token
+                                    editor.putBoolean("rememberMe", true); // Save the Remember Me state
+                                    editor.apply();
+                                }
+                                mail = email;
+                                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                                Intent main = new Intent(this, HomePage.class);
+                                startActivity(main);
                             }
-                            // Handle the login success (e.g., navigate to the main screen)
-                            Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                            // new update
-                            Intent main = new Intent(this , HomePage.class) ;
-                            startActivity(main) ;
-                            // navigateToMain();
+                        } else {
+                            Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
                         }
-                    } else {
-                        Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
-                    }
-                });
+                    });
+        }
+        else {
+            if (database.checkCredentials(email, password)) {
+                mail = email;
+                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                Intent main = new Intent(this, HomePage.class);
+                startActivity(main);
+            } else {
+                Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
+            }
+        }
 
 //        FirebaseFirestore db = FirebaseFirestore.getInstance();
 //
@@ -148,6 +165,15 @@ public class Login extends AppCompatActivity {
 
     }
 
+    private boolean isNetworkConnected() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager != null) {
+            NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
+            return activeNetwork != null && activeNetwork.isConnected();
+        }
+        return false;
+    }
+
 
     private void resetPassword() {
         String email = etEmail.getText().toString().trim();
@@ -179,3 +205,4 @@ public class Login extends AppCompatActivity {
 //        finish(); // Close the login activity
 //    }
 }
+

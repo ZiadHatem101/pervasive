@@ -11,7 +11,7 @@
         android:layout_height="120dp"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
-        />
+     />
 
     <!-- Username Text -->
     <TextView
@@ -34,5 +34,5 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="32dp"
         android:text="Logout" />
-</RelativeLayout>
 
+</RelativeLayout>

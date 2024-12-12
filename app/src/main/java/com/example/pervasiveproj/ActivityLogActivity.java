@@ -2,24 +2,25 @@ package com.example.pervasiveproj;
 
 import android.os.Bundle;
 import android.widget.ListView;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Date;
+
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+
 
 public class ActivityLogActivity extends AppCompatActivity {
 
     public ListView logListView;
     public static ArrayList<LogActivityItem> logItems = new ArrayList<>(); // Static ArrayList to store log items
+
 
 
     @Override
@@ -29,6 +30,10 @@ public class ActivityLogActivity extends AppCompatActivity {
 
         logListView = findViewById(R.id.logListView); // Find the ListView in the layout
 
+        ActivityLogDatabase activityDatabase ;
+        activityDatabase = ActivityLogDatabase.getInstance(this) ;
+
+        activityDatabase.getAllTheLogs();
 
         ActivityListAdapter adapter = new ActivityListAdapter(this, logItems);
         logListView.setAdapter(adapter);
@@ -48,6 +53,10 @@ public class ActivityLogActivity extends AppCompatActivity {
                         .addOnSuccessListener(aVoid -> {
                             // Notify that the data was successfully stored in Firebase
                             Toast.makeText(ActivityLogActivity.this, "Log saved successfully", Toast.LENGTH_SHORT).show();
+                            String message = logItem.getText();
+                            String timestamp = convertTimestampToString(logItem.getTimestamp());
+                            activityDatabase.insertLog(message, timestamp);
+
                         })
                         .addOnFailureListener(e -> {
                             // Handle failure in case of any issues with Firebase
@@ -55,6 +64,15 @@ public class ActivityLogActivity extends AppCompatActivity {
                         });
             }
         }
+    }
+
+    public static String convertTimestampToString(long timestamp) {
+        // Define the desired date format
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        // Create a Date object from the timestamp
+        Date date = new Date(timestamp);
+        // Format the Date object into a readable string
+        return sdf.format(date);
     }
 
 

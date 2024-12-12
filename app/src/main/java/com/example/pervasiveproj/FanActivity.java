@@ -52,28 +52,34 @@ public class FanActivity extends AppCompatActivity {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference fanRef = database.getReference("Fan/status");
 
+        long currentTimestamp = System.currentTimeMillis();
+
         // تشغيل المروحة
         btnFanTurnOn.setOnClickListener(v -> {
             fanRef.setValue("on").addOnSuccessListener(aVoid ->
-                    Toast.makeText(this, "Fan Turned On", Toast.LENGTH_SHORT).show()
-            ).addOnFailureListener(e ->
-                    Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show()
+                    {
+                        Toast.makeText(this, "Fan Turned On", Toast.LENGTH_SHORT).show();
+                        ActivityLogActivity.logItems.add(new LogActivityItem(currentTimestamp, "Toggled Fan : On"));
+                    }
+            ).addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show();
+                    }
             );
         });
 
-        long currentTimestamp = System.currentTimeMillis();
-        ActivityLogActivity.logItems.add(new LogActivityItem(currentTimestamp, "Toggled Fan : On"));
+
 
         // إطفاء المروحة
         btnFanTurnOff.setOnClickListener(v -> {
-            fanRef.setValue("off").addOnSuccessListener(aVoid ->
-                    Toast.makeText(this, "Fan Turned Off", Toast.LENGTH_SHORT).show()
+            fanRef.setValue("off").addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Fan Turned Off", Toast.LENGTH_SHORT).show();
+                        ActivityLogActivity.logItems.add(new LogActivityItem(currentTimestamp, "Toggled Fan : On"));
+                    }
             ).addOnFailureListener(e ->
                     Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show()
             );
         });
 
-        ActivityLogActivity.logItems.add(new LogActivityItem(currentTimestamp, "Toggled Fan : Off"));
-
     }
+
 }
