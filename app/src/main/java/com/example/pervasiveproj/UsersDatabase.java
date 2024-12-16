@@ -6,19 +6,15 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-
-
 public class UsersDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "users.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
+
+    private static final String TABLE_USERS = "users";
 
     private static UsersDatabase instance;
 
-    public UsersDatabase(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-    }
-
-
+    // Singleton Instance
     public static synchronized UsersDatabase getInstance(Context context) {
         if (instance == null) {
             instance = new UsersDatabase(context.getApplicationContext());
@@ -26,67 +22,102 @@ public class UsersDatabase extends SQLiteOpenHelper {
         return instance;
     }
 
+    // Constructor
+    private UsersDatabase(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase database) {
+        // Fixed SQL Syntax
+        String CREATE_USERS_TABLE = "CREATE TABLE " + TABLE_USERS + " (" +
+                "name TEXT, " +
+                "user_name TEXT, " +
+                "mail TEXT PRIMARY KEY, " +
+                "password TEXT, " +
+                "photo TEXT, " +
+                "birth_date TEXT" +
+                ")";
+        database.execSQL(CREATE_USERS_TABLE);
+    }
+
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        // If schema changes, drop and recreate the table
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
+        onCreate(db);
     }
 
-    public void onCreate(SQLiteDatabase database)
-    {
-        database.execSQL("CREATE TABLE users (TEXT name , TEXT user_name , TEXT mail PRIMARY KEY , TEXT password , TEXT photo , TEXT birth_date )");
-
-    }
-    public void insertUser(String name , String user_name , String mail , String password , String photo , String birth_date)
-    {
+    // Insert User
+    public boolean insertUser(String name, String user_name, String mail, String password, String photo, String birth_date) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
-        contentValues.put("name" , name);
-        contentValues.put("user_name" , user_name) ;
-        contentValues.put("mail" , mail) ;
-        contentValues.put("password" , password) ;
-        contentValues.put("photo" , photo) ;
-        contentValues.put("birth_date" , birth_date) ;
+        contentValues.put("name", name);
+        contentValues.put("user_name", user_name);
+        contentValues.put("mail", mail);
+        contentValues.put("password", password);
+        contentValues.put("photo", photo);
+        contentValues.put("birth_date", birth_date);
 
-        database.insert("users" , null , contentValues) ;
-        database.close();
+        // Perform insertion and check result
+        long result = database.insert(TABLE_USERS, null, contentValues);
+        return result != -1;  // Returns true if insert was successful
     }
 
-    public boolean checkCredentials(String mail , String password)
-    {
+    // Check User Credentials
+    public boolean checkCredentials(String mail, String password) {
         SQLiteDatabase database = this.getReadableDatabase();
+        boolean result = false;
 
-        String query = "select mail , password from users where mail = ? AND password = ?";
-        Cursor cursor = database.rawQuery(query, new String[]{mail, password});
+        String query = "SELECT * FROM users WHERE mail = ? AND password = ?";
+        Cursor cursor = null;
 
-        if(cursor != null && cursor.getCount() > 0)
-        {
-            return true ;
+        try {
+            cursor = database.rawQuery(query, new String[]{mail, password});
+
+            if (cursor != null && cursor.moveToFirst()) {
+                result = true; // Credentials match
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            database.close();
         }
-        else
-        {
-            return false ;
-        }
 
+        return result;
     }
 
+
+    // Retrieve User Photo
     public String getUserPhoto(String mail) {
         SQLiteDatabase database = this.getReadableDatabase();
         String photo = null;
 
-        // Query to get the user's photo (encoded image) based on email
         String query = "SELECT photo FROM users WHERE mail = ?";
-        Cursor cursor = database.rawQuery(query, new String[]{mail});
+        Cursor cursor = null;
 
-        if (cursor != null && cursor.moveToFirst()) {
-            // Retrieve the encoded photo string from the cursor
-            photo = cursor.getString(4);
+        try {
+            cursor = database.rawQuery(query, new String[]{mail});
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndex("photo");
+                if (columnIndex != -1) {
+                    photo = cursor.getString(columnIndex); // Safely retrieve the photo value
+                } else {
+                    throw new IllegalStateException("Column 'photo' does not exist in the database schema.");
+                }
+            }
+        } finally {
+            if (cursor != null) {
+                cursor.close(); // Ensure the cursor is closed
+            }
         }
 
-        cursor.close();
-        database.close();
-
-        return photo;  // Return the Base64-encoded photo string (or null if not found)
+        return photo; // Return the Base64-encoded photo string (or null if not found)
     }
+
 
 }

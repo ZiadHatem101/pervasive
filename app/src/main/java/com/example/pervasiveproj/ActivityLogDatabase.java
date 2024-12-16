@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.widget.SimpleCursorAdapter;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,7 +15,7 @@ public class ActivityLogDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "users.db";
     private static final int DATABASE_VERSION = 1;
 
-    private static ActivityLogDatabase instance;
+    public static ActivityLogDatabase instance;
 
     public ActivityLogDatabase(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -72,6 +71,7 @@ public class ActivityLogDatabase extends SQLiteOpenHelper {
         }
 
         cursor.close();
+        database.close();
 
     }
 

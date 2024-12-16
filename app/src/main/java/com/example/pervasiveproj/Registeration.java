@@ -18,26 +18,22 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.auth.User;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
-
-
 public class Registeration extends AppCompatActivity {
 
+    public static int UserPhotosCount = 1;
     private EditText etName, etUsername, etEmail, etPassword, etConfirmPassword;
     private Button btnUploadPicture, btnSelectBirthdate, btnRegister;
     private Uri profileImageUri;
     private String birthdate;
+    private FirebaseAuth firebaseAuth;
     private FirebaseFirestore firestore;
-    public static int UserPhotosCount = 1;
+    private SQLiteHelper sqliteHelper;
 
-    private String toBeReturned;
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
@@ -56,8 +52,10 @@ public class Registeration extends AppCompatActivity {
         btnSelectBirthdate = findViewById(R.id.btnSelectBirthdate);
         btnRegister = findViewById(R.id.btnRegister);
 
-        // Initialize Firebase
+        // Initialize Firebase and SQLite
+        firebaseAuth = FirebaseAuth.getInstance();
         firestore = FirebaseFirestore.getInstance();
+        sqliteHelper = new SQLiteHelper(this);
 
         // Upload Picture Button
         btnUploadPicture.setOnClickListener(v -> {
@@ -66,11 +64,12 @@ public class Registeration extends AppCompatActivity {
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
+        // Select Birthdate Button
         btnSelectBirthdate.setOnClickListener(v -> showDatePicker());
 
+        // Register Button
         btnRegister.setOnClickListener(v -> registerUser());
     }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -113,36 +112,39 @@ public class Registeration extends AppCompatActivity {
             return;
         }
 
-        if (profileImageUri != null) {
-            uploadProfilePicture(name, username, email, password);  // Upload the image and then save user
+        if (profileImageUri == null) {
+            Toast.makeText(this, "Please upload a profile picture!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        uploadProfilePictureAndRegister(name, username, email, password);
+        boolean isInserted = sqliteHelper.insertUser(name, email, password);
+        if (isInserted) {
+            Toast.makeText(this, "User registered successfully!", Toast.LENGTH_SHORT).show();
+            finish();  // Close registration activity
         } else {
-            Toast.makeText(this, "Please upload a picture", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Registration failed. Try again.", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void uploadProfilePicture(String name, String username, String email, String password) {
+    private void uploadProfilePictureAndRegister(String name, String username, String email, String password) {
         try {
             Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), profileImageUri);
             String encodedImage = ConvertImageURIToBitMap.encodeBitmapToBase64(bitmap);
 
-            FirebaseDatabase database = FirebaseDatabase.getInstance();
-            DatabaseReference photosRef = database.getReference("Photos/user" + UserPhotosCount + "Photo");
+            // Save user info to Firebase Realtime Database and Firestore
+            saveUserToFirebase(name, username, email, password, encodedImage);
 
-            photosRef.setValue(encodedImage).addOnSuccessListener(aVoid -> {
-                UserPhotosCount += 1;
-                Toast.makeText(this, "Photo Uploaded", Toast.LENGTH_SHORT).show();
-                saveUserToFirestore(name, username, email, password, encodedImage);  // Save user after image upload
-            }).addOnFailureListener(e -> {
-                UserPhotosCount -= 1;
-                Toast.makeText(this, "Failed to upload photo", Toast.LENGTH_SHORT).show();
-            });
+            // Cache user info in SQLite for offline login
+            sqliteHelper.insertUser(name, username, email);
+
 
         } catch (Exception e) {
             Toast.makeText(this, "Failed to process profile picture!", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void saveUserToFirestore(String name, String username, String email, String password, String encodedPhoto) {
+    private void saveUserToFirebase(String name, String username, String email, String password, String encodedPhoto) {
         Map<String, Object> user = new HashMap<>();
         user.put("name", name);
         user.put("username", username);
@@ -151,29 +153,26 @@ public class Registeration extends AppCompatActivity {
         user.put("birthdate", birthdate);
         user.put("profilePicture", encodedPhoto);
 
-        UsersDatabase database = UsersDatabase.getInstance(this);
-
-
-        database.insertUser(name, username, email, password, birthdate , encodedPhoto);
-
-        FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+        // Save to Firestore
         firestore.collection("users").document(username)
                 .set(user)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(this, "User registered successfully!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(this, "Failed to register user: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                });
+                .addOnSuccessListener(aVoid -> Toast.makeText(this, "User registered successfully!", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Failed to save user in Firestore!", Toast.LENGTH_SHORT).show());
 
-        FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        // Save to Realtime Database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference usersRef = database.getReference("users").child(username);
+        usersRef.setValue(user).addOnSuccessListener(aVoid ->
+                Toast.makeText(this, "User data saved in Firebase!", Toast.LENGTH_SHORT).show()
+        );
+
+        // Register in Firebase Authentication
         firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "User registered successfully!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "User authenticated successfully!", Toast.LENGTH_SHORT).show();
                     } else {
-                        Toast.makeText(this, "Failed to register user.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Authentication failed!", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

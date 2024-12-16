@@ -74,7 +74,4 @@ public class ActivityLogActivity extends AppCompatActivity {
         // Format the Date object into a readable string
         return sdf.format(date);
     }
-
-
-
 }

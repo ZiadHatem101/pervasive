@@ -10,7 +10,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ListView;
 import android.widget.SearchView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 public class HomePage extends AppCompatActivity {
 
     private ListView actionsListView;
-    private SearchView searchView ;
+    private SearchView searchView;
     private FirebaseAuth firebaseAuth;
 
     ArrayList<Item> actionsList = new ArrayList<>();
@@ -32,9 +31,7 @@ public class HomePage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
-
         MotionDetection.readData();
-
 
         actionsListView = findViewById(R.id.actionsListView);
 
@@ -54,30 +51,41 @@ public class HomePage extends AppCompatActivity {
         actionsListView.setAdapter(actionsListAdapter);
 
         actionsListView.setOnItemClickListener((parent, view, position, id) -> {
-                    // Retrieve the clicked item
-                    Item clickedItem = actionsList.get(position);
+          // Check network connectivity
+        if (!isNetworkConnected()) {
+               Toast.makeText(this, "Please check your network connection!", Toast.LENGTH_SHORT).show();
+              return;
+            }
 
-                    // Use an intent to navigate to the corresponding activity
-                    Intent intent;
-                    switch (clickedItem.getName().toString()) {
-                        case "Temperature":
-                            intent = new Intent(HomePage.this, TemperatureActivity.class);
-                            break;
-                        case "Lights":
-                            intent = new Intent(HomePage.this, LightsActivity.class);
-                            break;
-                        case "Fan":
-                            intent = new Intent(HomePage.this, FanActivity.class);
-                            break;
-                        case "Garage Door":
-                            intent = new Intent(HomePage.this, GarageDoorActivity.class);
-                            break;
-                        default:
-                            intent = null;
-                            break;
-                    }
-                    startActivity(intent);
+            // Retrieve the clicked item
+            Item clickedItem = actionsList.get(position);
+
+            // Use an intent to navigate to the corresponding activity
+            Intent intent;
+            switch (clickedItem.getName()) {
+                case "Temperature":
+                    intent = new Intent(HomePage.this, TemperatureActivity.class);
+                    break;
+                case "Lights":
+                    intent = new Intent(HomePage.this, LightsActivity.class);
+                    break;
+                case "Fan":
+                    intent = new Intent(HomePage.this, FanActivity.class);
+                    break;
+                case "Garage Door":
+                    intent = new Intent(HomePage.this, GarageDoorActivity.class);
+                    break;
+                default:
+                    intent = null;
+                    break;
+            }
+
+            if (intent != null) {
+                startActivity(intent);
+            }
         });
+
+        // Search functionality
         searchView = findViewById(R.id.searchView);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -95,73 +103,56 @@ public class HomePage extends AppCompatActivity {
 
     private void filterList(String newText) {
         ArrayList<Item> filteredList = new ArrayList<>();
-        for(Item item : actionsList)
-        {
-            if(item.getName().toLowerCase().contains(newText.toLowerCase()))
-            {
+        for (Item item : actionsList) {
+            if (item.getName().toLowerCase().contains(newText.toLowerCase())) {
                 filteredList.add(item);
             }
         }
 
-        if (filteredList.isEmpty())
-        {
+        if (filteredList.isEmpty()) {
             Toast.makeText(this, "Not Found", Toast.LENGTH_SHORT).show();
-            return;
+        } else {
+            ActionsListAdapter adapter = new ActionsListAdapter(this, filteredList);
+            actionsListView.setAdapter(adapter);
         }
-
-        ActionsListAdapter adapter = new ActionsListAdapter(this , filteredList);
-        actionsListView.setAdapter(adapter);
-
-
     }
 
     // Inflate the options menu
-
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present
         getMenuInflater().inflate(R.menu.options_menu, menu);  // Link to the options_menu.xml
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle item selection using if-else instead of switch
         if (item.getItemId() == R.id.action_activity_log) {
             // Navigate to Activity Log
             Intent activityLogIntent = new Intent(this, ActivityLogActivity.class);
             startActivity(activityLogIntent);
             return true;
-
         } else if (item.getItemId() == R.id.action_profile) {
             // Navigate to Profile
             Intent profileIntent = new Intent(this, Profile.class);
             startActivity(profileIntent);
             return true;
-
         } else if (item.getItemId() == R.id.action_logout) {
-
             logoutUser();
-
-            return false;
+            return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
+
     private void logoutUser() {
-        // Clear saved credentials in SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear(); // Clear saved login data
+        editor.clear();
         editor.apply();
 
-        if(isNetworkConnected()) {
+        if (isNetworkConnected()) {
             firebaseAuth.signOut();
         }
 
-
-        // Navigate back to the login screen
         Intent intent = new Intent(this, Login.class);
         startActivity(intent);
         finish();
@@ -175,6 +166,4 @@ public class HomePage extends AppCompatActivity {
         }
         return false;
     }
-
 }
-

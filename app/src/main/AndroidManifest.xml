@@ -44,9 +44,6 @@
             android:name=".ActivityLogActivity"
             android:exported="false" />
         <activity
-            android:name=".SQLite"
-            android:exported="false" />
-        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>

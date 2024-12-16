@@ -1,11 +1,11 @@
 package com.example.pervasiveproj;
+
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.service.autofill.UserData;
 import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -16,25 +16,21 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.auth.User;
-
 
 public class Login extends AppCompatActivity {
 
-    EditText etEmail ;
-    private EditText etPassword;
+    private EditText etEmail, etPassword;
     private CheckBox cbRememberMe;
     private Button btnLogin, btnRegister, btnForgotPassword;
     private FirebaseAuth firebaseAuth;
-    private FirebaseFirestore firestore;
-    public static String mail ;
+    private SQLiteHelper sqliteHelper;
+    public static String mail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
 
         // Initialize Views
         etEmail = findViewById(R.id.etLoginEmail);
@@ -44,19 +40,19 @@ public class Login extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
         btnForgotPassword = findViewById(R.id.btnForgotPassword);
 
-        // Initialize Firebase
+        // Initialize Firebase Auth and SQLite Database
         firebaseAuth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
+        sqliteHelper = new SQLiteHelper(this);
 
-        // Login Button
+        // Load saved credentials if "Remember Me" was checked
+        loadSavedCredentials();
+
+        // Button Click Listeners
         btnLogin.setOnClickListener(v -> loginUser());
-
-        // Register Button
         btnRegister.setOnClickListener(v -> navigateToRegister());
-
-        // Forgot Password Button
         btnForgotPassword.setOnClickListener(v -> resetPassword());
     }
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -64,24 +60,18 @@ public class Login extends AppCompatActivity {
     }
 
     private void loadSavedCredentials() {
-        // Access SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
-        boolean rememberMe = sharedPreferences.getBoolean("rememberMe", false); // Check if Remember Me was selected
+        boolean rememberMe = sharedPreferences.getBoolean("rememberMe", false);
 
         if (rememberMe) {
-            // Retrieve saved email and password
             String savedEmail = sharedPreferences.getString("email", "");
             String savedPassword = sharedPreferences.getString("password", "");
 
-            // Auto-fill the fields
             etEmail.setText(savedEmail);
             etPassword.setText(savedPassword);
-
-            // Check the "Remember Me" checkbox
             cbRememberMe.setChecked(true);
         }
     }
-
 
     private void loginUser() {
         String email = etEmail.getText().toString().trim();
@@ -91,77 +81,35 @@ public class Login extends AppCompatActivity {
             Toast.makeText(this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        UsersDatabase database = UsersDatabase.getInstance(this) ;
-
-        if(isNetworkConnected()) {
+        UsersDatabase database = UsersDatabase.getInstance(this);
+        if (isNetworkConnected()) {
+            // Online login using Firebase
             firebaseAuth.signInWithEmailAndPassword(email, password)
                     .addOnCompleteListener(this, task -> {
                         if (task.isSuccessful()) {
                             FirebaseUser user = firebaseAuth.getCurrentUser();
                             if (user != null) {
-                                // Save credentials if "Remember Me" is checked
-                                if (cbRememberMe.isChecked()) {
-                                    SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
-                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                    editor.putString("email", email);
-                                    editor.putString("password", password); // Or use Firebase token
-                                    editor.putBoolean("rememberMe", true); // Save the Remember Me state
-                                    editor.apply();
-                                }
-                                mail = email;
+                                saveCredentialsIfRememberMe(email, password);
+                                Login.mail = email;
                                 Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                                Intent main = new Intent(this, HomePage.class);
-                                startActivity(main);
+                                navigateToHomePage();
                             }
                         } else {
-                            Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
+                            String errorMessage = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                            Toast.makeText(this, "Login Failed: " + errorMessage, Toast.LENGTH_LONG).show();
+
                         }
                     });
-        }
-        else {
-            if (database.checkCredentials(email, password)) {
-                mail = email;
+        } else {
+            // Check credentials in SQLite database
+            boolean isValid = sqliteHelper.checkUserCredentials(email, password);
+            if (isValid) {
                 Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                Intent main = new Intent(this, HomePage.class);
-                startActivity(main);
+                navigateToHomePage();
             } else {
-                Toast.makeText(this, "Login Failed. Please try again.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Invalid email or password.", Toast.LENGTH_SHORT).show();
             }
         }
-
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//
-//        db.collection("users")
-//                .whereEqualTo("email", email)
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        boolean userFound = false;
-//
-//                        for (QueryDocumentSnapshot document : task.getResult()) {
-//                            String storedPassword = document.getString("password");
-//                            if (storedPassword != null && storedPassword.equals(password)) {
-//                                userFound = true;
-//                                Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
-//
-//                                Intent intent = new Intent(this, HomePage.class);
-//                                startActivity(intent);
-//
-//                                break;
-//                            }
-//                        }
-//
-//                        if (!userFound) {
-//                            Toast.makeText(this, "Invalid email or password.", Toast.LENGTH_SHORT).show();
-//                        }
-//                    } else {
-//                        Toast.makeText(this, "Error connecting to database: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-//                    }
-//                })
-//                .addOnFailureListener(e -> {
-//                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-//                });
 
     }
 
@@ -174,6 +122,21 @@ public class Login extends AppCompatActivity {
         return false;
     }
 
+    private void saveCredentialsIfRememberMe(String email, String password) {
+        SharedPreferences sharedPreferences = getSharedPreferences("login_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        if (cbRememberMe.isChecked()) {
+            editor.putString("email", email);
+            editor.putString("password", password);
+            editor.putBoolean("rememberMe", true);
+        } else {
+            editor.clear(); // Remove credentials if "Remember Me" is unchecked
+        }
+
+        editor.apply();
+    }
+
 
     private void resetPassword() {
         String email = etEmail.getText().toString().trim();
@@ -184,7 +147,7 @@ public class Login extends AppCompatActivity {
         }
 
         firebaseAuth.sendPasswordResetEmail(email)
-                .addOnCompleteListener(this, task -> {
+                .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Password reset email sent.", Toast.LENGTH_SHORT).show();
                     } else {
@@ -193,16 +156,14 @@ public class Login extends AppCompatActivity {
                 });
     }
 
-
     private void navigateToRegister() {
         Intent intent = new Intent(this, Registeration.class);
         startActivity(intent);
     }
 
-//    private void navigateToMain() {
-//        Intent intent = new Intent(this, MainActivity.class); // Replace with your main activity
-//        startActivity(intent);
-//        finish(); // Close the login activity
-//    }
-}
+    private void navigateToHomePage() {
+        Intent intent = new Intent(this, HomePage.class);
+        startActivity(intent);
+    }
 
+}
