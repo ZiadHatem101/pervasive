@@ -31,7 +31,11 @@ public class ActivityLogDatabase extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Drop the existing table
+        db.execSQL("DROP TABLE IF EXISTS activity_log");
 
+        // Recreate the table by calling onCreate
+        onCreate(db);
     }
 
     public void onCreate(SQLiteDatabase database) {
