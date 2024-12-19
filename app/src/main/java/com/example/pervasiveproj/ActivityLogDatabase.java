@@ -12,7 +12,7 @@ import java.util.Date;
 
 
 public class ActivityLogDatabase extends SQLiteOpenHelper {
-    private static final String DATABASE_NAME = "users.db";
+    private static final String DATABASE_NAME = "activity_log_database.db";
     private static final int DATABASE_VERSION = 1;
 
     public static ActivityLogDatabase instance;
@@ -40,12 +40,15 @@ public class ActivityLogDatabase extends SQLiteOpenHelper {
 
     }
 
-    public void insertLog(String message, String timestamp) {
+    public void insertLog(String message, long timestamp) {
+        String timestampString = ActivityLogActivity.convertTimestampToString(timestamp);
+
+
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
         contentValues.put("message", message);
-        contentValues.put("timestamp", timestamp);
+        contentValues.put("timestamp", timestampString);
 
         database.insert("activity_log", null, contentValues);
         database.close();
@@ -82,9 +85,8 @@ public class ActivityLogDatabase extends SQLiteOpenHelper {
         try {
 
             Date date = dateFormat.parse(dateString);
-
-
             return date.getTime();
+
         } catch (ParseException e) {
             e.printStackTrace();
             return -1;

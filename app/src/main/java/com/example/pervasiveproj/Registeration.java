@@ -3,12 +3,15 @@ package com.example.pervasiveproj;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -19,6 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,6 +38,8 @@ public class Registeration extends AppCompatActivity {
     private FirebaseFirestore firestore;
     private SQLiteHelper sqliteHelper;
 
+    private UsersDatabase database;
+
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
@@ -41,6 +47,9 @@ public class Registeration extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registeration);
+
+        database = UsersDatabase.getInstance(this) ;
+
 
         // Initialize Views
         etName = findViewById(R.id.etName);
@@ -117,8 +126,13 @@ public class Registeration extends AppCompatActivity {
             return;
         }
 
-        uploadProfilePictureAndRegister(name, username, email, password);
-        boolean isInserted = sqliteHelper.insertUser(name, email, password);
+        byte[] photo = uploadProfilePictureAndRegister(name, username, email, password);
+        boolean isInserted = sqliteHelper.insertUser(name, email, password, photo);
+        UsersRoomDatabase roomDatabase = UsersRoomDatabase.getInstance(this);
+
+        roomDatabase.userDao().insert(new User(name , username , email , password , photo));
+
+
         if (isInserted) {
             Toast.makeText(this, "User registered successfully!", Toast.LENGTH_SHORT).show();
             finish();  // Close registration activity
@@ -127,20 +141,27 @@ public class Registeration extends AppCompatActivity {
         }
     }
 
-    private void uploadProfilePictureAndRegister(String name, String username, String email, String password) {
+    private byte[] uploadProfilePictureAndRegister(String name, String username, String email, String password) {
         try {
-            Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), profileImageUri);
-            String encodedImage = ConvertImageURIToBitMap.encodeBitmapToBase64(bitmap);
+            Bitmap bmp = MediaStore.Images.Media.getBitmap(this.getContentResolver(), profileImageUri);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byte[] byteArray = stream.toByteArray();
+
+            String encodedImage = ConvertImageURIToBitMap.encodeBitmapToBase64(bmp);
 
             // Save user info to Firebase Realtime Database and Firestore
             saveUserToFirebase(name, username, email, password, encodedImage);
 
             // Cache user info in SQLite for offline login
-            sqliteHelper.insertUser(name, username, email);
+            database.insertUser(name, username, email , password , byteArray , birthdate);
 
+            return byteArray;
 
         } catch (Exception e) {
             Toast.makeText(this, "Failed to process profile picture!", Toast.LENGTH_SHORT).show();
+            Log.d("Ali",e.getMessage());
+            return null;
         }
     }
 
@@ -175,5 +196,13 @@ public class Registeration extends AppCompatActivity {
                         Toast.makeText(this, "Authentication failed!", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    protected static byte[] imageViewToByte(ImageView image) {
+        Bitmap bitmap = ((BitmapDrawable) image.getDrawable()).getBitmap();
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+        return byteArray;
     }
 }

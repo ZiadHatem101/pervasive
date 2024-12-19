@@ -50,4 +50,11 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
     implementation("com.google.firebase:firebase-analytics")
+
+
+        implementation("androidx.room:room-runtime:2.5.0") // Use the latest version
+        annotationProcessor("androidx.room:room-compiler:2.5.0") // Use for Java
+        // If you're using Kotlin, use kapt instead:
+        // kapt "androidx.room:room-compiler:2.5.0"
+
 }

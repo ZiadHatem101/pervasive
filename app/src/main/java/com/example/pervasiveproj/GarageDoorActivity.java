@@ -28,7 +28,7 @@ public class GarageDoorActivity extends AppCompatActivity {
 
         // فتح الجراج
         btnGarageOpen.setOnClickListener(v -> {
-            garageRef.setValue("open").addOnSuccessListener(aVoid ->
+            garageRef.setValue("on").addOnSuccessListener(aVoid ->
                     Toast.makeText(this, "Garage Door Opened", Toast.LENGTH_SHORT).show()
             ).addOnFailureListener(e ->
                     Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show()
@@ -40,7 +40,7 @@ public class GarageDoorActivity extends AppCompatActivity {
 
         // إغلاق الجراج
         btnGarageClose.setOnClickListener(v -> {
-            garageRef.setValue("closed").addOnSuccessListener(aVoid ->
+            garageRef.setValue("off").addOnSuccessListener(aVoid ->
                     Toast.makeText(this, "Garage Door Closed", Toast.LENGTH_SHORT).show()
             ).addOnFailureListener(e ->
                     Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show()

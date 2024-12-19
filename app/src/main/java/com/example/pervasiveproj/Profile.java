@@ -3,6 +3,7 @@ package com.example.pervasiveproj;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.ConnectivityManager;
@@ -22,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.Blob;
 
 public class Profile extends AppCompatActivity {
 
@@ -42,17 +44,19 @@ public class Profile extends AppCompatActivity {
         usernameText = findViewById(R.id.username_text);
         logoutButton = findViewById(R.id.logout_button);
 
-        // Initialize Firebase
-        firebaseAuth = FirebaseAuth.getInstance();
-        firebaseDatabaseReference = FirebaseDatabase.getInstance().getReference("Photos");
+        usernameText.setText(Login.mail);
 
-        FirebaseUser user = firebaseAuth.getCurrentUser();
-        if (user != null) {
-            usernameText.setText(Login.mail);
-        } else {
-            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
-            navigateToLogin();
-        }
+        // Initialize Firebase
+//        firebaseAuth = FirebaseAuth.getInstance();
+//        firebaseDatabaseReference = FirebaseDatabase.getInstance().getReference("Photos");
+//
+//        FirebaseUser user = firebaseAuth.getCurrentUser();
+//        if (user != null) {
+//            usernameText.setText(Login.mail);
+//        } else {
+//            Toast.makeText(this, "User not logged in!", Toast.LENGTH_SHORT).show();
+//            navigateToLogin();
+//        }
 
         // Logout Button
         logoutButton.setOnClickListener(v -> logoutUser());
@@ -62,48 +66,58 @@ public class Profile extends AppCompatActivity {
     }
 
     private void fetchProfileImage() {
-        if (isNetworkConnected()) {
-            // Fetch profile image from Firebase Realtime Database
-            firebaseDatabaseReference.child("user" + Registeration.UserPhotosCount + "Photo")
-                    .get()
-                    .addOnSuccessListener(this::handleProfileImageFetchSuccess)
-                    .addOnFailureListener(this::handleProfileImageFetchFailure);
-        } else {
+//        if (isNetworkConnected()) {
+//            // Fetch profile image from Firebase Realtime Database
+//            firebaseDatabaseReference.child("user" + Registeration.UserPhotosCount + "Photo")
+//                    .get()
+//                    .addOnSuccessListener(this::handleProfileImageFetchSuccess)
+//                    .addOnFailureListener(this::handleProfileImageFetchFailure);
+//        } else {
             // Fetch profile image from local SQLite database
-            UsersDatabase sqlDatabase = UsersDatabase.getInstance(this);
-            String encodedPhoto = sqlDatabase.getUserPhoto(Login.mail);
-            if (encodedPhoto != null) {
-                setProfileImage(encodedPhoto);
-            } else {
-                Toast.makeText(this, "No offline profile image found!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
+            UsersRoomDatabase roomDatabase = UsersRoomDatabase.getInstance(this) ;
+            User user = roomDatabase.userDao().getUserByEmail(Login.mail);
 
-    private void handleProfileImageFetchSuccess(DataSnapshot dataSnapshot) {
-        if (dataSnapshot.exists()) {
-            String encodedPhoto = dataSnapshot.getValue(String.class);
-            if (encodedPhoto != null) {
-                setProfileImage(encodedPhoto);
-            } else {
-                Toast.makeText(this, "No profile image found in the database!", Toast.LENGTH_SHORT).show();
+            if(user == null)
+            {
+                Toast.makeText(this, "No Photo Found", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            Toast.makeText(this, "No profile image found in the database!", Toast.LENGTH_SHORT).show();
+            else {
+                setProfileImage(user.getPhoto());
+            }
+
+//            SQLiteHelper sqlDatabase = SQLiteHelper.getInstance(this);
+//            byte[] encodedPhoto = sqlDatabase.getUserPhoto(Login.mail);
+//            if (encodedPhoto != null) {
+//                setProfileImage(encodedPhoto);
+//            } else {
+//                Toast.makeText(this, "No offline profile image found!", Toast.LENGTH_SHORT).show();
+//            }
         }
-    }
+
+
+//    private void handleProfileImageFetchSuccess(DataSnapshot dataSnapshot) {
+//        if (dataSnapshot.exists()) {
+//            byte[] encodedPhoto = dataSnapshot.getValue(Blob.class);
+//            if (encodedPhoto != null) {
+//                setProfileImage(encodedPhoto);
+//            } else {
+//                Toast.makeText(this, "No profile image found in the database!", Toast.LENGTH_SHORT).show();
+//            }
+//        } else {
+//            Toast.makeText(this, "No profile image found in the database!", Toast.LENGTH_SHORT).show();
+//        }
+//    }
 
     private void handleProfileImageFetchFailure(@NonNull Exception e) {
         Toast.makeText(this, "Failed to fetch profile image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
-    private void setProfileImage(String encodedImage) {
+    private void setProfileImage(byte[] imageByte) {
         try {
             // Decode the Base64 encoded string to bytes
-            byte[] decodedString = Base64.decode(encodedImage, Base64.DEFAULT);
 
             // Convert the byte array to a Bitmap
-            Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            Bitmap decodedBitmap = BitmapFactory.decodeByteArray(imageByte, 0, imageByte.length);
 
             // Set the Bitmap to the ImageView
             profileImage.setImageBitmap(decodedBitmap);

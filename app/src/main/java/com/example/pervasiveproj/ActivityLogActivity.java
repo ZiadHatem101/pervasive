@@ -38,33 +38,33 @@ public class ActivityLogActivity extends AppCompatActivity {
         ActivityListAdapter adapter = new ActivityListAdapter(this, logItems);
         logListView.setAdapter(adapter);
 
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference logRef = database.getReference("Log"); // Reference to "Log" node in the database
+//        FirebaseDatabase database = FirebaseDatabase.getInstance();
+//        DatabaseReference logRef = database.getReference("Log"); // Reference to "Log" node in the database
 
 
-        // Loop through logItems and add them to the database
-        for (LogActivityItem logItem : logItems) {
-            // Create a unique key for each log item using push() (this will avoid overwriting previous logs)
-            String logId = logRef.push().getKey();
-
-            if (logId != null) {
-                // Set the log item in Firebase at the unique logId path
-                logRef.child(logId).setValue(logItem)
-                        .addOnSuccessListener(aVoid -> {
-                            // Notify that the data was successfully stored in Firebase
-                            Toast.makeText(ActivityLogActivity.this, "Log saved successfully", Toast.LENGTH_SHORT).show();
-                            String message = logItem.getText();
-                            String timestamp = convertTimestampToString(logItem.getTimestamp());
-                            activityDatabase.insertLog(message, timestamp);
-
-                        })
-                        .addOnFailureListener(e -> {
-                            // Handle failure in case of any issues with Firebase
-                            Toast.makeText(ActivityLogActivity.this, "Failed to save log", Toast.LENGTH_SHORT).show();
-                        });
+//        // Loop through logItems and add them to the database
+//        for (LogActivityItem logItem : logItems) {
+//            // Create a unique key for each log item using push() (this will avoid overwriting previous logs)
+//            String logId = logRef.push().getKey();
+//
+//            if (logId != null) {
+//                // Set the log item in Firebase at the unique logId path
+//                logRef.child(logId).setValue(logItem)
+//                        .addOnSuccessListener(aVoid -> {
+//                            // Notify that the data was successfully stored in Firebase
+//                            Toast.makeText(ActivityLogActivity.this, "Log saved successfully", Toast.LENGTH_SHORT).show();
+//                            String message = logItem.getText();
+//                            String timestamp = convertTimestampToString(logItem.getTimestamp());
+//                            //activityDatabase.insertLog(message, );
+//
+//                        })
+//                        .addOnFailureListener(e -> {
+//                            // Handle failure in case of any issues with Firebase
+//                            Toast.makeText(ActivityLogActivity.this, "Failed to save log", Toast.LENGTH_SHORT).show();
+//                        });
             }
-        }
-    }
+
+
 
     public static String convertTimestampToString(long timestamp) {
         // Define the desired date format

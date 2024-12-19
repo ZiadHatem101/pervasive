@@ -60,6 +60,9 @@ public class FanActivity extends AppCompatActivity {
                     {
                         Toast.makeText(this, "Fan Turned On", Toast.LENGTH_SHORT).show();
                         ActivityLogActivity.logItems.add(new LogActivityItem(currentTimestamp, "Toggled Fan : On"));
+
+                        ActivityLogDatabase activityLogDatabase = ActivityLogDatabase.getInstance(this) ;
+                        activityLogDatabase.insertLog("ToggledFan : On",currentTimestamp);
                     }
             ).addOnFailureListener(e -> {
                         Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show();
@@ -74,6 +77,7 @@ public class FanActivity extends AppCompatActivity {
             fanRef.setValue("off").addOnSuccessListener(aVoid -> {
                         Toast.makeText(this, "Fan Turned Off", Toast.LENGTH_SHORT).show();
                         ActivityLogActivity.logItems.add(new LogActivityItem(currentTimestamp, "Toggled Fan : On"));
+
                     }
             ).addOnFailureListener(e ->
                     Toast.makeText(this, "Failed to update status", Toast.LENGTH_SHORT).show()

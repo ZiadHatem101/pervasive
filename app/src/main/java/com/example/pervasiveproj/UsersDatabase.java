@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class UsersDatabase extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "users.db";
-    private static final int DATABASE_VERSION = 2;
+    private static final int DATABASE_VERSION = 1;
 
     private static final String TABLE_USERS = "users";
 
@@ -35,7 +35,7 @@ public class UsersDatabase extends SQLiteOpenHelper {
                 "user_name TEXT, " +
                 "mail TEXT PRIMARY KEY, " +
                 "password TEXT, " +
-                "photo TEXT, " +
+                "photo blob, " +
                 "birth_date TEXT" +
                 ")";
         database.execSQL(CREATE_USERS_TABLE);
@@ -49,7 +49,7 @@ public class UsersDatabase extends SQLiteOpenHelper {
     }
 
     // Insert User
-    public boolean insertUser(String name, String user_name, String mail, String password, String photo, String birth_date) {
+    public boolean insertUser(String name, String user_name, String mail, String password, byte[] photo, String birth_date) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
 
@@ -93,9 +93,9 @@ public class UsersDatabase extends SQLiteOpenHelper {
 
 
     // Retrieve User Photo
-    public String getUserPhoto(String mail) {
+    public byte[] getUserPhoto(String mail) {
         SQLiteDatabase database = this.getReadableDatabase();
-        String photo = null;
+        byte[] photo = null;
 
         String query = "SELECT photo FROM users WHERE mail = ?";
         Cursor cursor = null;
@@ -105,7 +105,7 @@ public class UsersDatabase extends SQLiteOpenHelper {
             if (cursor != null && cursor.moveToFirst()) {
                 int columnIndex = cursor.getColumnIndex("photo");
                 if (columnIndex != -1) {
-                    photo = cursor.getString(columnIndex); // Safely retrieve the photo value
+                    photo = cursor.getBlob(columnIndex); // Safely retrieve the photo value
                 } else {
                     throw new IllegalStateException("Column 'photo' does not exist in the database schema.");
                 }

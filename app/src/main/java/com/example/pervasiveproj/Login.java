@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.RoomDatabase;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -24,7 +25,9 @@ public class Login extends AppCompatActivity {
     private Button btnLogin, btnRegister, btnForgotPassword;
     private FirebaseAuth firebaseAuth;
     private SQLiteHelper sqliteHelper;
-    public static String mail;
+    public static String mail = "";
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +42,8 @@ public class Login extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         btnRegister = findViewById(R.id.btnRegister);
         btnForgotPassword = findViewById(R.id.btnForgotPassword);
+
+
 
         // Initialize Firebase Auth and SQLite Database
         firebaseAuth = FirebaseAuth.getInstance();
@@ -77,6 +82,10 @@ public class Login extends AppCompatActivity {
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
 
+
+
+        mail = email;
+
         if (TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
             Toast.makeText(this, "Please fill all fields!", Toast.LENGTH_SHORT).show();
             return;
@@ -103,12 +112,26 @@ public class Login extends AppCompatActivity {
         } else {
             // Check credentials in SQLite database
             boolean isValid = sqliteHelper.checkUserCredentials(email, password);
-            if (isValid) {
-                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
-                navigateToHomePage();
-            } else {
-                Toast.makeText(this, "Invalid email or password.", Toast.LENGTH_SHORT).show();
+            UsersRoomDatabase roomDatabase = UsersRoomDatabase.getInstance(this) ;
+            User user = roomDatabase.userDao().getUserByEmail(mail) ;
+            if(user!=null)
+            {
+                if(user.getPassword().equals(password))
+                {
+                    Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+                    navigateToHomePage();
+                }
+                else
+                {
+                    Toast.makeText(this, "Invalid email or password.", Toast.LENGTH_SHORT).show();
+                }
             }
+//            if (isValid) {
+//                Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+//                navigateToHomePage();
+//            } else {
+//                Toast.makeText(this, "Invalid email or password.", Toast.LENGTH_SHORT).show();
+//            }
         }
 
     }

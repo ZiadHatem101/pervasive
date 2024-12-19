@@ -36,7 +36,8 @@ public class MotionDetection extends AppCompatActivity {
                     updateDeviceStatus("Leds/status", "on");
                 }
             } else {
-                // Toast.makeText(this, "Ultrasonic status not found", Toast.LENGTH_SHORT).show();
+                updateDeviceStatus("Fan/status", "off");
+                updateDeviceStatus("Leds/status", "off");
             }
         }).addOnFailureListener(e -> {
             // Toast.makeText(this, "Failed to fetch data: " + e.getMessage(), Toast.LENGTH_SHORT).show();
